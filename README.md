@@ -52,6 +52,43 @@
 | **脚本执行** | `evaluate_script` | 在网页 Context 中运行自定义 JavaScript |
 
 ---
+以下是为您翻译的中文内容：
+
+## 外部 MCP 工具（远程服务器）
+
+Gemini Nexus 可以选择连接到外部 MCP 服务器（通过 **SSE**、**可流式传输的 HTTP** 或 **WebSocket**），并在现有的工具循环（Tool Loop）中执行其工具。
+
+### 推荐方案：使用本地代理（支持 stdio 服务器）
+
+由于 Chrome 扩展程序无法直接运行基于 stdio 的 MCP 服务器，推荐的设置方案是运行一个本地代理（例如 [MCP SuperAssistant](https://github.com/srbhptl39/MCP-SuperAssistant) Proxy）。在代理中配置您的 MCP 服务器（包括 stdio 服务器），然后将 Gemini Nexus 连接到该代理端点。
+
+常见的代理端点如下：
+
+  * **SSE**: `http://127.0.0.1:3006/sse`
+  * **可流式传输的 HTTP**: `http://127.0.0.1:3006/mcp`
+  * **WebSocket**: `ws://127.0.0.1:3006/mcp`
+
+### 设置步骤
+
+1.  启动您的 MCP 代理并在其中配置好 MCP 服务器。
+
+2.  在 **设置 (Settings) → 连接 (Connection) → 外部 MCP 工具 (External MCP Tools)** 中：
+
+      * 启用“外部 MCP 工具” (Enable External MCP Tools)。
+      * 选择一个**活动服务器** (Active Server)（您可以保存多个服务器条目并根据需要切换）。
+      * 选择传输协议并设置服务器 URL（SSE / 可流式传输的 HTTP / WebSocket）。
+      * 点击**测试连接** (Test Connection) 和**刷新工具** (Refresh Tools)。
+
+3.  可选（当工具较多时推荐）：将**公开工具** (Expose Tools) 设置为**仅限选定工具** (Selected tools only)，然后仅启用您希望模型查看/使用的工具。
+
+4.  开始正常对话；当模型需要使用工具时，它会输出一个如下所示的 JSON 工具块：
+
+    ```json
+    { "tool": "工具名称", "args": { "键": "值" } }
+    ```
+
+
+---
 
 ## ✨ 核心功能亮点
 
