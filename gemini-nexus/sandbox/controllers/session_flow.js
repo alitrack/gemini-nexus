@@ -1,8 +1,8 @@
-
 // sandbox/controllers/session_flow.js
 import { appendMessage } from '../render/message.js';
 import { sendToBackground, saveSessionsToStorage } from '../../lib/messaging.js';
 import { t } from '../core/i18n.js';
+import { exportSession } from '../utils/export.js';
 
 export class SessionFlowController {
     constructor(sessionManager, uiController, appController) {
@@ -13,11 +13,11 @@ export class SessionFlowController {
 
     handleNewChat() {
         if (this.app.isGenerating) this.app.prompt.cancel();
-        
+
         this.app.messageHandler.resetStream();
-        
+
         const s = this.sessionManager.createSession();
-        s.title = t('newChat'); 
+        s.title = t('newChat');
         this.switchToSession(s.id);
     }
 
@@ -26,7 +26,7 @@ export class SessionFlowController {
 
         this.app.messageHandler.resetStream();
         this.sessionManager.setCurrentId(sessionId);
-        
+
         const session = this.sessionManager.getCurrentSession();
         if (!session) return;
 
@@ -60,7 +60,8 @@ export class SessionFlowController {
             this.sessionManager.currentSessionId,
             {
                 onSwitch: (id) => this.switchToSession(id),
-                onDelete: (id) => this.handleDeleteSession(id)
+                onDelete: (id) => this.handleDeleteSession(id),
+                onExport: (id) => this.handleExportSession(id)
             }
         );
     }
@@ -68,7 +69,7 @@ export class SessionFlowController {
     handleDeleteSession(sessionId) {
         const switchNeeded = this.sessionManager.deleteSession(sessionId);
         saveSessionsToStorage(this.sessionManager.sessions);
-        
+
         if (switchNeeded) {
             if (this.sessionManager.sessions.length > 0) {
                 this.switchToSession(this.sessionManager.currentSessionId);
@@ -77,6 +78,28 @@ export class SessionFlowController {
             }
         } else {
             this.refreshHistoryUI();
+        }
+    }
+
+    handleExportSession(sessionId) {
+        const session = this.sessionManager.sessions.find(s => s.id === sessionId);
+        if (session) {
+            exportSession(session);
+            // Optional: Show a brief status message
+            this.ui.updateStatus(t('exportSuccess'));
+            setTimeout(() => this.ui.updateStatus(''), 2000);
+        }
+    }
+
+    handleExportCurrentSession() {
+        const session = this.sessionManager.getCurrentSession();
+        if (session && session.messages && session.messages.length > 0) {
+            exportSession(session);
+            this.ui.updateStatus(t('exportSuccess'));
+            setTimeout(() => this.ui.updateStatus(''), 2000);
+        } else {
+            this.ui.updateStatus(t('noMessagesToExport'));
+            setTimeout(() => this.ui.updateStatus(''), 2000);
         }
     }
 }

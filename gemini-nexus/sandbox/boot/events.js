@@ -6,7 +6,15 @@ import { t } from '../core/i18n.js';
 export function bindAppEvents(app, ui, setResizeRef) {
     // New Chat Buttons
     document.getElementById('new-chat-header-btn').addEventListener('click', () => app.handleNewChat());
-    
+
+    // Export Current Chat Button
+    const exportChatBtn = document.getElementById('export-chat-btn');
+    if (exportChatBtn) {
+        exportChatBtn.addEventListener('click', () => {
+            app.sessionFlow.handleExportCurrentSession();
+        });
+    }
+
     // Tab Switcher Button
     const tabSwitcherBtn = document.getElementById('tab-switcher-btn');
     if (tabSwitcherBtn) {
