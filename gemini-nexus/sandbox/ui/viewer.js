@@ -11,6 +11,7 @@ export class ViewerController {
             startX: 0,
             startY: 0
         };
+        this.boundHandlers = {};
 
         this.queryElements();
         this.initListeners();
@@ -35,10 +36,18 @@ export class ViewerController {
     initListeners() {
         if (!this.viewer) return;
 
-        // --- Mouse / Wheel Interactions ---
+        this.boundHandlers.mousemove = (e) => this.pan(e);
+        this.boundHandlers.mouseup = () => this.endPan();
+        this.boundHandlers.viewImage = (e) => this.open(e.detail);
+        this.boundHandlers.keydown = (e) => {
+            if (e.key === 'Escape' && this.viewer.classList.contains('visible')) {
+                this.close();
+            }
+        };
+
         this.container.addEventListener('mousedown', (e) => this.startPan(e));
-        document.addEventListener('mousemove', (e) => this.pan(e));
-        document.addEventListener('mouseup', () => this.endPan());
+        document.addEventListener('mousemove', this.boundHandlers.mousemove);
+        document.addEventListener('mouseup', this.boundHandlers.mouseup);
         this.container.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
         this.container.addEventListener('dblclick', (e) => {
             if (e.target === this.fullImage || e.target === this.container) {
@@ -46,28 +55,34 @@ export class ViewerController {
             }
         });
 
-        // --- Toolbar Buttons ---
         this.btnZoomIn.addEventListener('click', () => this.zoomIn());
         this.btnZoomOut.addEventListener('click', () => this.zoomOut());
         this.btnReset.addEventListener('click', () => this.resetTransform());
         this.btnClose.addEventListener('click', () => this.close());
         this.btnDownload.addEventListener('click', () => this.downloadImage());
 
-        // --- Backdrop Click to Close ---
         this.viewer.addEventListener('click', (e) => {
             if (e.target === this.viewer) this.close();
         });
 
-        // --- Global Events ---
-        document.addEventListener('gemini-view-image', (e) => {
-            this.open(e.detail);
-        });
+        document.addEventListener('gemini-view-image', this.boundHandlers.viewImage);
+        document.addEventListener('keydown', this.boundHandlers.keydown);
+    }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.viewer.classList.contains('visible')) {
-                this.close();
-            }
-        });
+    destroy() {
+        if (this.boundHandlers.mousemove) {
+            document.removeEventListener('mousemove', this.boundHandlers.mousemove);
+        }
+        if (this.boundHandlers.mouseup) {
+            document.removeEventListener('mouseup', this.boundHandlers.mouseup);
+        }
+        if (this.boundHandlers.viewImage) {
+            document.removeEventListener('gemini-view-image', this.boundHandlers.viewImage);
+        }
+        if (this.boundHandlers.keydown) {
+            document.removeEventListener('keydown', this.boundHandlers.keydown);
+        }
+        this.boundHandlers = {};
     }
 
     // --- State Management ---

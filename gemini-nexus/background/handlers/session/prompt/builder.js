@@ -34,7 +34,9 @@ export class PromptBuilder {
                         try {
                             const tab = await chrome.tabs.get(targetTabId);
                             url = tab.url;
-                        } catch (e) { }
+                        } catch (e) {
+                            // Failed to get locked tab, fallback will query active tab
+                        }
                     }
                     
                     // Fallback to active tab if no locked tab or lookup failed

@@ -141,10 +141,12 @@ export class PromptHandler {
                                  const targetTabId = this.controlManager.getTargetTabId();
                                  let urlInfo = "";
                                  if (targetTabId) {
-                                     try {
-                                         const tab = await chrome.tabs.get(targetTabId);
-                                         urlInfo = `[Current URL]: ${tab.url}\n`;
-                                     } catch(e) {}
+                                      try {
+                                          const tab = await chrome.tabs.get(targetTabId);
+                                          urlInfo = `[Current URL]: ${tab.url}\n`;
+                                      } catch (e) {
+                                          // Tab may have been closed, continue without URL info
+                                      }
                                  }
 
                                  const snapshot = await this.controlManager.getSnapshot();

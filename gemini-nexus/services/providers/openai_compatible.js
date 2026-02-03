@@ -106,7 +106,9 @@ export async function sendOpenAIMessage(prompt, systemInstruction, history, conf
         try {
             const errJson = JSON.parse(errorText);
             if (errJson.error && errJson.error.message) errorText = errJson.error.message;
-        } catch(e) {}
+        } catch (e) {
+            // JSON parse failed, use raw error text from response
+        }
         throw new Error(`API Error (${response.status}): ${errorText}`);
     }
 
