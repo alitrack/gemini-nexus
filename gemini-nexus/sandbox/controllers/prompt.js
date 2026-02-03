@@ -17,6 +17,23 @@ export class PromptController {
         this.regenerateIndex = null;
         this.regenerateUserMessageIndex = null;
         this.skipUserMessageForHandler = false;
+        this.pendingMessages = new Set();
+    }
+
+    trackPendingMessage(messageId) {
+        this.pendingMessages.add(messageId);
+        console.log('[PromptController] Tracking pending message:', messageId, 'Total pending:', this.pendingMessages.size);
+    }
+
+    untrackPendingMessage(messageId) {
+        this.pendingMessages.delete(messageId);
+        console.log('[PromptController] Removed pending message:', messageId, 'Total pending:', this.pendingMessages.size);
+    }
+
+    getEffectiveMessageCount() {
+        const session = this.sessionManager.getCurrentSession();
+        const baseCount = session ? session.messages.length : 0;
+        return baseCount + this.pendingMessages.size;
     }
 
     async send(skipUserMessageRender = false, skipUserMessageAdd = false) {

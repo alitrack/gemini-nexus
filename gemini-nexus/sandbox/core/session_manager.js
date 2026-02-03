@@ -1,6 +1,6 @@
 
 // sandbox/core/session_manager.js
-import { generateUUID } from '../../lib/utils.js';
+import { generateUUID, generateMessageId } from '../../lib/utils.js';
 
 export class SessionManager {
     constructor() {
@@ -61,19 +61,23 @@ export class SessionManager {
         return false;
     }
 
-    addMessage(id, role, text, attachment = null, thoughts = null) {
+    addMessage(id, role, text, attachment = null, thoughts = null, messageId = null) {
         const session = this.sessions.find(s => s.id === id);
         if (session) {
-            const msg = { role, text };
-            
+            const msg = {
+                role,
+                text,
+                id: messageId || generateMessageId()  // Always assign a unique ID
+            };
+
             if (thoughts) {
                 msg.thoughts = thoughts;
             }
-            
+
             // Handle attachments based on role
             if (role === 'user' && typeof attachment === 'string') {
                 // Backward compatibility: user attachment is usually a single base64 string
-                msg.image = attachment; 
+                msg.image = attachment;
             } else if (role === 'ai' && Array.isArray(attachment) && attachment.length > 0) {
                 // AI generated images
                 msg.generatedImages = attachment;

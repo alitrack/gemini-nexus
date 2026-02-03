@@ -9,10 +9,13 @@ import { createGeneratedImage } from './generated_image.js';
 // - string: single user image (URL/Base64)
 // - array of strings: multiple user images
 // - array of objects {url, alt}: AI generated images
-export function appendMessage(container, text, role, attachment = null, thoughts = null, messageIndex = null) {
-    console.log(`[appendMessage] role=${role}, messageIndex=${messageIndex}, hasAttachment=${!!attachment}`);
+export function appendMessage(container, text, role, attachment = null, thoughts = null, messageIndex = null, messageId = null) {
+    console.log(`[appendMessage] role=${role}, index=${messageIndex}, id=${messageId}`);
     const div = document.createElement('div');
     div.className = `msg ${role}`;
+    if (messageId) {
+        div.dataset.messageId = messageId;
+    }
     
     // Store current text state
     let currentText = text || "";
@@ -244,9 +247,10 @@ export function appendMessage(container, text, role, attachment = null, thoughts
         });
     }, 10);
 
-    // Return controller
     return {
         div,
+        messageIndex,
+        messageId,
         update: (newText, newThoughts) => {
             if (newText !== undefined) {
                 currentText = newText;

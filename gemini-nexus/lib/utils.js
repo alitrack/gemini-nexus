@@ -15,6 +15,11 @@ export function generateUUID() {
     }).toUpperCase();
 }
 
+// Generate a short unique message ID (shorter than UUID for message tracking)
+export function generateMessageId() {
+    return 'msg_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
+}
+
 // Convert Data URL to Blob (Safe implementation without fetch)
 export async function dataUrlToBlob(dataUrl) {
     try {

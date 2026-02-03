@@ -82,7 +82,8 @@ export async function appendAiMessage(sessionId, result) {
                 text: result.text,
                 thoughts: result.thoughts,
                 generatedImages: result.images,
-                thoughtSignature: result.thoughtSignature // Save context signature for Gemini 3
+                thoughtSignature: result.thoughtSignature,
+                id: result.messageId || null
             });
             session.context = result.context; // Update context
             session.timestamp = Date.now();

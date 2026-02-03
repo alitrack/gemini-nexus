@@ -3,6 +3,7 @@
 import { appendAiMessage, appendUserMessage } from '../../managers/history_manager.js';
 import { PromptBuilder } from './prompt/builder.js';
 import { ToolExecutor } from './prompt/tool_executor.js';
+import { generateMessageId } from '../../lib/utils.js';
 
 // Helper to prevent rapid-fire requests that trigger rate limits
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -24,13 +25,15 @@ export class PromptHandler {
         this.isCancelled = false;
 
         (async () => {
+            const messageId = generateMessageId();
+
             const onUpdate = (partialText, partialThoughts) => {
-                // Catch errors if receiver (UI) is closed/unavailable
                 chrome.runtime.sendMessage({
                     action: "GEMINI_STREAM_UPDATE",
                     text: partialText,
-                    thoughts: partialThoughts
-                }).catch(() => {}); 
+                    thoughts: partialThoughts,
+                    messageId: messageId
+                }).catch(() => {});
             };
 
             try {
@@ -87,17 +90,19 @@ export class PromptHandler {
                     if (this.isCancelled) break;
 
                     if (!result || result.status !== 'success') {
-                        // If error, notify UI and break loop
-                        if (result) chrome.runtime.sendMessage(result).catch(() => {});
+                        if (result) {
+                            result.messageId = messageId;
+                            chrome.runtime.sendMessage(result).catch(() => {});
+                        }
                         break;
                     }
 
-                    // 3. Save AI Response to History
+                    result.messageId = messageId;
+
                     if (request.sessionId) {
                         await appendAiMessage(request.sessionId, result);
                     }
-                    
-                    // Notify UI of the result (replaces streaming bubble)
+
                     chrome.runtime.sendMessage(result).catch(() => {});
 
                     // 4. Process Tool Execution (if any)
