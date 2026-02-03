@@ -23,6 +23,32 @@ export class ChatController {
                 this.autoSaveDraft();
             });
         }
+
+        // Code Block Copy Delegation
+        if (this.historyDiv) {
+            this.historyDiv.addEventListener('click', async (e) => {
+                const btn = e.target.closest('.copy-code-btn');
+                if (!btn) return;
+                
+                const wrapper = btn.closest('.code-block-wrapper');
+                const codeEl = wrapper.querySelector('code');
+                if (!codeEl) return;
+                
+                try {
+                    await copyToClipboard(codeEl.textContent);
+                    
+                    // Visual Feedback
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Copied</span>`;
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy code', err);
+                }
+            });
+        }
     }
 
     autoSaveDraft() {
@@ -54,33 +80,6 @@ export class ChatController {
 
     clearDraft() {
         localStorage.removeItem('geminiDraft');
-    }
-
-        // Code Block Copy Delegation
-        if (this.historyDiv) {
-            this.historyDiv.addEventListener('click', async (e) => {
-                const btn = e.target.closest('.copy-code-btn');
-                if (!btn) return;
-                
-                const wrapper = btn.closest('.code-block-wrapper');
-                const codeEl = wrapper.querySelector('code');
-                if (!codeEl) return;
-                
-                try {
-                    await copyToClipboard(codeEl.textContent);
-                    
-                    // Visual Feedback
-                    const originalHtml = btn.innerHTML;
-                    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Copied</span>`;
-                    
-                    setTimeout(() => {
-                        btn.innerHTML = originalHtml;
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy code', err);
-                }
-            });
-        }
     }
 
     updateStatus(text) {
