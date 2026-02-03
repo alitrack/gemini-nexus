@@ -42,6 +42,87 @@ export class SidebarController {
         if (this.searchInput) {
             this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
         }
+        
+        const importBtn = document.getElementById('import-sessions-btn');
+        const importInput = document.getElementById('import-sessions-input');
+        if (importBtn && importInput) {
+            importBtn.addEventListener('click', () => importInput.click());
+            importInput.addEventListener('change', (e) => this.handleImport(e));
+        }
+    }
+    
+    async handleImport(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        try {
+            const text = await file.text();
+            let sessions = [];
+            
+            if (file.name.endsWith('.json')) {
+                sessions = JSON.parse(text);
+            } else if (file.name.endsWith('.md')) {
+                sessions = this.parseMarkdownSessions(text);
+            }
+            
+            if (this.callbacks.onImport && sessions.length > 0) {
+                this.callbacks.onImport(sessions);
+            }
+        } catch (err) {
+            console.error('Import failed:', err);
+            alert('Import failed: ' + err.message);
+        }
+        
+        e.target.value = '';
+    }
+    
+    parseMarkdownSessions(markdown) {
+        const sessions = [];
+        const sessionBlocks = markdown.split(/\n## /).slice(1);
+        
+        sessionBlocks.forEach(block => {
+            const lines = block.split('\n');
+            const title = lines[0].trim();
+            const messages = [];
+            
+            let currentRole = null;
+            let currentText = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                
+                if (line.startsWith('**User**:')) {
+                    if (currentRole) {
+                        messages.push({ role: currentRole, text: currentText.join('\n').trim() });
+                    }
+                    currentRole = 'user';
+                    currentText = [line.replace('**User**:', '').trim()];
+                } else if (line.startsWith('**AI**:')) {
+                    if (currentRole) {
+                        messages.push({ role: currentRole, text: currentText.join('\n').trim() });
+                    }
+                    currentRole = 'ai';
+                    currentText = [line.replace('**AI**:', '').trim()];
+                } else if (currentRole && line.trim()) {
+                    currentText.push(line);
+                }
+            }
+            
+            if (currentRole) {
+                messages.push({ role: currentRole, text: currentText.join('\n').trim() });
+            }
+            
+            if (messages.length > 0) {
+                sessions.push({
+                    id: 'imported_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    title: title || 'Imported Chat',
+                    timestamp: Date.now(),
+                    messages: messages
+                });
+            }
+        });
+        
+        return sessions;
     }
 
     toggle() {

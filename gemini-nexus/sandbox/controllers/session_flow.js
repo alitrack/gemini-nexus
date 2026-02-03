@@ -3,6 +3,7 @@ import { appendMessage } from '../render/message.js';
 import { sendToBackground, saveSessionsToStorage } from '../../lib/messaging.js';
 import { t } from '../core/i18n.js';
 import { exportSession } from '../utils/export.js';
+import { generateUUID } from '../../lib/utils.js';
 
 export class SessionFlowController {
     constructor(sessionManager, uiController, appController) {
@@ -273,5 +274,28 @@ export class SessionFlowController {
 
         saveSessionsToStorage(this.sessionManager.sessions);
         console.log('💾 Saved sessions to storage');
+    }
+
+    handleImportSessions(importedSessions) {
+        if (!importedSessions || importedSessions.length === 0) return;
+        
+        console.log(`[SessionFlow] Importing ${importedSessions.length} sessions`);
+        
+        importedSessions.forEach(session => {
+            const newId = generateUUID();
+            const newSession = {
+                ...session,
+                id: newId,
+                timestamp: Date.now(),
+                context: null
+            };
+            
+            this.sessionManager.sessions.unshift(newSession);
+        });
+        
+        saveSessionsToStorage(this.sessionManager.sessions);
+        this.refreshHistoryUI();
+        
+        console.log('[SessionFlow] Import complete');
     }
 }

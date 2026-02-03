@@ -20,8 +20,41 @@ export class ChatController {
             this.inputFn.addEventListener('input', () => {
                 this.inputFn.style.height = 'auto';
                 this.inputFn.style.height = this.inputFn.scrollHeight + 'px';
+                this.autoSaveDraft();
             });
         }
+    }
+
+    autoSaveDraft() {
+        if (!this.inputFn) return;
+        
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+        }
+        
+        this.debounceTimer = setTimeout(() => {
+            const draft = this.inputFn.value;
+            if (draft && draft.trim()) {
+                localStorage.setItem('geminiDraft', draft);
+            } else {
+                localStorage.removeItem('geminiDraft');
+            }
+        }, 1000);
+    }
+
+    restoreDraft() {
+        if (!this.inputFn) return;
+        
+        const draft = localStorage.getItem('geminiDraft');
+        if (draft) {
+            this.inputFn.value = draft;
+            this.inputFn.dispatchEvent(new Event('input'));
+        }
+    }
+
+    clearDraft() {
+        localStorage.removeItem('geminiDraft');
+    }
 
         // Code Block Copy Delegation
         if (this.historyDiv) {
@@ -80,8 +113,9 @@ export class ChatController {
     resetInput() {
         if (this.inputFn) {
             this.inputFn.value = '';
-            this.inputFn.style.height = 'auto'; // Reset height only once
+            this.inputFn.style.height = 'auto';
             this.inputFn.focus();
+            this.clearDraft();
         }
     }
 

@@ -72,7 +72,14 @@ export function initAppMode() {
         // Initialize Controller
         const app = new AppController(sessionManager, ui, imageManager);
         
-        // Connect Bridge to App Instances
+        ui.setImportCallback((sessions) => {
+            if (app && app.sessionFlow) {
+                app.sessionFlow.handleImportSessions(sessions);
+            }
+        });
+        
+        ui.chat.restoreDraft();
+        
         bridge.setUI(ui);
         bridge.setApp(app);
 

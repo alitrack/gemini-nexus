@@ -14,10 +14,10 @@
 
 ## 3. State Synchronization Improvements
 
-- [ ] 3.1 Implement merge logic for `SESSIONS_UPDATED` in `bridge.js`
-- [ ] 3.2 Add message ID-based merging instead of full replacement
-- [ ] 3.3 Add recent change detection (5 second window) to prefer local state
-- [ ] 3.4 Add divergence detection and logging when states don't match
+- [x] 3.1 Implement merge logic for `SESSIONS_UPDATED` in `bridge.js`
+- [x] 3.2 Add message ID-based merging instead of full replacement
+- [x] 3.3 Add recent change detection (5 second window) to prefer local state
+- [x] 3.4 Add divergence detection and logging when states don't match
 
 ## 4. Background Script Updates
 
@@ -36,7 +36,7 @@
 ## 6. Race Condition Detection and Logging
 
 - [x] 6.1 Add warning logs when duplicate indices are detected
-- [ ] 6.2 Add warning logs when state divergence is detected
+- [x] 6.2 Add warning logs when state divergence is detected
 - [x] 6.3 Log pending message queue state for debugging
 - [ ] 6.4 Add performance markers for message operations
 
@@ -55,3 +55,10 @@
 - [ ] 8.2 Add JSDoc for new public methods
 - [x] 8.3 Update BUGS-AND-IMPROVEMENTS.md to mark this issue as resolved
 - [ ] 8.4 Add entry to CHANGELOG.md describing the fix
+
+## 9. Additional Features (P2)
+
+- [x] 9.1 Add draft auto-save functionality
+- [x] 9.2 Add session import functionality
+- [x] 9.3 Add import button to sidebar
+- [x] 9.4 Add JSON and Markdown import support

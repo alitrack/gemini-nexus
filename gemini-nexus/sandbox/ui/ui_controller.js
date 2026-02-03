@@ -7,12 +7,12 @@ import { ViewerController } from './viewer.js';
 import { TabSelectorController } from './tab_selector.js';
 
 export class UIController {
-    constructor(elements) {
-        // Initialize Sub-Controllers
+    constructor(elements, callbacks = {}) {
         this.chat = new ChatController(elements);
         
         this.sidebar = new SidebarController(elements, {
-            onOverlayClick: () => this.settings.close()
+            onOverlayClick: () => this.settings.close(),
+            onImport: callbacks.onImport
         });
         
         // Settings and Viewer now self-manage their DOM
@@ -167,5 +167,9 @@ export class UIController {
         if (this.tabSwitcherBtn) {
             this.tabSwitcherBtn.style.display = show ? 'flex' : 'none';
         }
+    }
+    
+    setImportCallback(onImport) {
+        this.sidebar.callbacks.onImport = onImport;
     }
 }
