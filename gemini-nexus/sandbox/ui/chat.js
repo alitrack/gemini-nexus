@@ -1,4 +1,3 @@
-
 // ui_chat.js -> sandbox/ui/chat.js
 import { t } from '../core/i18n.js';
 import { copyToClipboard } from '../render/clipboard.js';
@@ -20,7 +19,6 @@ export class ChatController {
             this.inputFn.addEventListener('input', () => {
                 this.inputFn.style.height = 'auto';
                 this.inputFn.style.height = this.inputFn.scrollHeight + 'px';
-                this.autoSaveDraft();
             });
         }
 
@@ -49,37 +47,6 @@ export class ChatController {
                 }
             });
         }
-    }
-
-    autoSaveDraft() {
-        if (!this.inputFn) return;
-        
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer);
-        }
-        
-        this.debounceTimer = setTimeout(() => {
-            const draft = this.inputFn.value;
-            if (draft && draft.trim()) {
-                localStorage.setItem('geminiDraft', draft);
-            } else {
-                localStorage.removeItem('geminiDraft');
-            }
-        }, 1000);
-    }
-
-    restoreDraft() {
-        if (!this.inputFn) return;
-        
-        const draft = localStorage.getItem('geminiDraft');
-        if (draft) {
-            this.inputFn.value = draft;
-            this.inputFn.dispatchEvent(new Event('input'));
-        }
-    }
-
-    clearDraft() {
-        localStorage.removeItem('geminiDraft');
     }
 
     updateStatus(text) {
@@ -114,7 +81,6 @@ export class ChatController {
             this.inputFn.value = '';
             this.inputFn.style.height = 'auto';
             this.inputFn.focus();
-            this.clearDraft();
         }
     }
 

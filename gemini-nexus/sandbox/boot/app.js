@@ -78,8 +78,6 @@ export function initAppMode() {
             }
         });
         
-        ui.chat.restoreDraft();
-        
         bridge.setUI(ui);
         bridge.setApp(app);
 
