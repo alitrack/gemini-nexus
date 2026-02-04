@@ -69,12 +69,12 @@ export function initAppMode() {
             }
         });
 
-        // Initialize Controller
-        const app = new AppController(sessionManager, ui, imageManager);
-        
-        // Connect Bridge to App Instances
-        bridge.setUI(ui);
-        bridge.setApp(app);
+// Initialize Controller
+    const app = new AppController(sessionManager, ui, imageManager);
+    app.draftAutosave.init();
+
+    bridge.setUI(ui);
+    bridge.setApp(app);
 
         // Bind DOM Events
         bindAppEvents(app, ui, (fn) => bridge.setResizeFn(fn));

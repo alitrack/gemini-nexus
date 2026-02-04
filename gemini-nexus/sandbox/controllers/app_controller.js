@@ -3,6 +3,7 @@
 import { MessageHandler } from './message_handler.js';
 import { SessionFlowController } from './session_flow.js';
 import { PromptController } from './prompt.js';
+import { DraftAutosaveController } from './draft_autosave.js';
 import { t } from '../core/i18n.js';
 import { saveSessionsToStorage, sendToBackground } from '../../lib/messaging.js';
 
@@ -28,10 +29,11 @@ export class AppController {
             this
         );
 
-        // Initialize Sub-Controllers
-        this.sessionFlow = new SessionFlowController(sessionManager, uiController, this);
-        this.prompt = new PromptController(sessionManager, uiController, imageManager, this);
-    }
+// Initialize Sub-Controllers
+    this.sessionFlow = new SessionFlowController(sessionManager, uiController, this);
+    this.prompt = new PromptController(sessionManager, uiController, imageManager, this);
+    this.draftAutosave = new DraftAutosaveController(sessionManager, uiController);
+  }
 
     setCaptureMode(mode) {
         this.captureMode = mode;

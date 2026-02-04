@@ -22,11 +22,18 @@ export class SessionFlowController {
         this.switchToSession(s.id);
     }
 
-    switchToSession(sessionId) {
-        if (this.app.isGenerating) this.app.prompt.cancel();
+switchToSession(sessionId) {
+    if (this.app.isGenerating) this.app.prompt.cancel();
 
-        this.app.messageHandler.resetStream();
-        this.sessionManager.setCurrentId(sessionId);
+    const oldSessionId = this.sessionManager.currentSessionId;
+
+    this.app.messageHandler.resetStream();
+
+    if (this.app.draftAutosave) {
+      this.app.draftAutosave.onSessionSwitch(oldSessionId, sessionId);
+    }
+
+    this.sessionManager.setCurrentId(sessionId);
 
         const session = this.sessionManager.getCurrentSession();
         if (!session) return;

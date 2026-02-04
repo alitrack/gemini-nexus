@@ -136,10 +136,14 @@ export class PromptController {
             });
         }
 
-        this.ui.resetInput();
-        this.imageManager.clearFile();
+this.ui.resetInput();
+    this.imageManager.clearFile();
 
-        this.app.isGenerating = true;
+    if (this.app.draftAutosave) {
+      this.app.draftAutosave.onMessageSent(currentId);
+    }
+
+    this.app.isGenerating = true;
         this.ui.setLoading(true);
 
         // Store the skip params for use in message handler
