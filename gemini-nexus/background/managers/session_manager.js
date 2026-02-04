@@ -1,15 +1,13 @@
-
 // background/managers/session_manager.js
 import { AuthManager } from './auth_manager.js';
 import { getConnectionSettings } from './session/settings_store.js';
 import { RequestDispatcher } from './session/request_dispatcher.js';
-import { generateMessageId } from '../../lib/utils.js';
 
 export class GeminiSessionManager {
     constructor() {
         this.auth = new AuthManager();
         this.dispatcher = new RequestDispatcher(this.auth);
-        this.activeRequest = null;
+        this.abortController = null;
     }
 
     async ensureInitialized() {
@@ -17,18 +15,16 @@ export class GeminiSessionManager {
     }
 
     async handleSendPrompt(request, onUpdate) {
-        const requestId = generateMessageId();
-        
+        // Cancel previous if exists
         this.cancelCurrentRequest();
         
-        const abortController = new AbortController();
-        this.activeRequest = { id: requestId, controller: abortController };
-        
-        const signal = abortController.signal;
+        this.abortController = new AbortController();
+        const signal = this.abortController.signal;
 
         try {
             const settings = await getConnectionSettings();
             
+            // Normalize files
             let files = [];
             if (request.files && Array.isArray(request.files)) {
                 files = request.files;
@@ -40,6 +36,7 @@ export class GeminiSessionManager {
                 }];
             }
 
+            // Ensure Auth is ready for Web provider (Dispatcher relies on AuthManager)
             if (settings.provider === 'web') {
                 await this.ensureInitialized();
             }
@@ -54,6 +51,7 @@ export class GeminiSessionManager {
             let errorMessage = error.message || "Unknown error";
             const isZh = chrome.i18n.getUILanguage().startsWith('zh');
 
+            // Handle common user-facing errors
             if(errorMessage.includes("未登录") || errorMessage.includes("Not logged in")) {
                 this.auth.forceContextRefresh();
                 await chrome.storage.local.remove(['geminiContext']);
@@ -74,17 +72,14 @@ export class GeminiSessionManager {
                 status: "error"
             };
         } finally {
-            if (this.activeRequest?.id === requestId) {
-                this.activeRequest = null;
-            }
+            this.abortController = null;
         }
     }
 
     cancelCurrentRequest() {
-        if (this.activeRequest) {
-            console.log('[GeminiSessionManager] Cancelling request:', this.activeRequest.id);
-            this.activeRequest.controller.abort();
-            this.activeRequest = null;
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
             return true;
         }
         return false;
