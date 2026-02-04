@@ -1,3 +1,4 @@
+
 // sidepanel/core/bridge.js
 import { downloadFile, downloadText } from '../utils/download.js';
 
@@ -35,7 +36,7 @@ export class MessageBridge {
         if (action === 'FORWARD_TO_BACKGROUND') {
             chrome.runtime.sendMessage(payload)
                 .then(response => {
-                    // If request demands a reply (e.g. GET_LOGS, CHECK_PAGE_CONTEXT), send it back
+                    // If request demands a reply (e.g., GET_LOGS, CHECK_PAGE_CONTEXT), send it back
                     if (response && (payload.action === 'GET_LOGS' || payload.action === 'CHECK_PAGE_CONTEXT' || payload.action === 'MCP_TEST_CONNECTION' || payload.action === 'MCP_LIST_TOOLS')) {
                         this.frame.postMessage({
                             action: 'BACKGROUND_MESSAGE',
@@ -156,18 +157,105 @@ export class MessageBridge {
 
     handleRuntimeMessage(message) {
         if (message.action === 'SESSIONS_UPDATED') {
-            this.state.updateSessions(message.sessions);
-            this.frame.postMessage({
-                action: 'RESTORE_SESSIONS',
-                payload: message.sessions
-            });
+            this.handleSessionsUpdated(message.sessions);
             return;
         }
 
-        // Forward all other background messages to sandbox (e.g. GEMINI_STREAM_UPDATE)
         this.frame.postMessage({
             action: 'BACKGROUND_MESSAGE',
             payload: message
         });
+    }
+
+    handleSessionsUpdated(incomingSessions) {
+        const currentSessions = this.state.data?.geminiSessions || [];
+        const mergedSessions = this.mergeSessions(currentSessions, incomingSessions);
+        
+        const hasChanges = JSON.stringify(mergedSessions) !== JSON.stringify(currentSessions);
+        const hasDivergence = this.detectDivergence(currentSessions, incomingSessions);
+        
+        if (hasDivergence) {
+            console.warn('[MessageBridge] Session state divergence detected between local and storage');
+        }
+        
+        if (hasChanges || hasDivergence) {
+            this.state.updateSessions(mergedSessions);
+            this.frame.postMessage({
+                action: 'RESTORE_SESSIONS',
+                payload: mergedSessions
+            });
+        }
+    }
+
+    mergeSessions(localSessions, remoteSessions) {
+        const sessionMap = new Map();
+        const FIVE_SECONDS = 5000;
+        const now = Date.now();
+        
+        remoteSessions.forEach(session => {
+            sessionMap.set(session.id, { ...session, source: 'remote' });
+        });
+        
+        localSessions.forEach(localSession => {
+            const existing = sessionMap.get(localSession.id);
+            const isRecent = (now - localSession.timestamp) < FIVE_SECONDS;
+            
+            if (!existing) {
+                sessionMap.set(localSession.id, { ...localSession, source: 'local' });
+            } else if (isRecent) {
+                const mergedMessages = this.mergeMessages(localSession.messages || [], existing.messages || []);
+                sessionMap.set(localSession.id, {
+                    ...existing,
+                    ...localSession,
+                    messages: mergedMessages,
+                    source: 'merged'
+                });
+            }
+        });
+        
+        return Array.from(sessionMap.values())
+            .sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    mergeMessages(localMessages, remoteMessages) {
+        const messageMap = new Map();
+        const FIVE_SECONDS = 5000;
+        const now = Date.now();
+        
+        remoteMessages.forEach((msg, index) => {
+            const key = msg.id || `index_${index}`;
+            messageMap.set(key, { ...msg, source: 'remote' });
+        });
+        
+        localMessages.forEach((localMsg, index) => {
+            const key = localMsg.id || `index_${index}`;
+            const existing = messageMap.get(key);
+            const isRecent = (now - (localMsg.timestamp || now)) < FIVE_SECONDS;
+            
+            if (!existing || isRecent) {
+                messageMap.set(key, { ...localMsg, source: existing ? 'merged' : 'local' });
+            }
+        });
+        
+        return Array.from(messageMap.values());
+    }
+
+    detectDivergence(localSessions, remoteSessions) {
+        if (localSessions.length !== remoteSessions.length) {
+            return true;
+        }
+        
+        const localMap = new Map(localSessions.map(s => [s.id, s.messages?.length || 0]));
+        
+        for (const remoteSession of remoteSessions) {
+            const localMessageCount = localMap.get(remoteSession.id);
+            const remoteMessageCount = remoteSession.messages?.length || 0;
+            
+            if (localMessageCount !== undefined && localMessageCount !== remoteMessageCount) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

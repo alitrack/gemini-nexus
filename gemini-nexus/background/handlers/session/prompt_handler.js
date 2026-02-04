@@ -1,3 +1,4 @@
+
 // background/handlers/session/prompt_handler.js
 import { appendAiMessage, appendUserMessage } from '../../managers/history_manager.js';
 import { PromptBuilder } from './prompt/builder.js';
@@ -143,7 +144,9 @@ export class PromptHandler {
                                       try {
                                           const tab = await chrome.tabs.get(targetTabId);
                                           urlInfo = `[Current URL]: ${tab.url}\n`;
-                                      } catch(e) {}
+                                      } catch (e) {
+                                          // Tab may have been closed, continue without URL info
+                                      }
                                  }
 
                                  const snapshot = await this.controlManager.getSnapshot();

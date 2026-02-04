@@ -1,3 +1,4 @@
+
 // ui_chat.js -> sandbox/ui/chat.js
 import { t } from '../core/i18n.js';
 import { copyToClipboard } from '../render/clipboard.js';
@@ -79,7 +80,7 @@ export class ChatController {
     resetInput() {
         if (this.inputFn) {
             this.inputFn.value = '';
-            this.inputFn.style.height = 'auto';
+            this.inputFn.style.height = 'auto'; // Reset height only once
             this.inputFn.focus();
         }
     }
