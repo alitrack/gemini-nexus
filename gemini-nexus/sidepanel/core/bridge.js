@@ -126,17 +126,32 @@ export class MessageBridge {
             return;
         }
 
-        // 6. Data Setters (Sync to Storage & Cache)
-        if (action === 'SAVE_SESSIONS') this.state.save('geminiSessions', payload);
-        if (action === 'SAVE_SHORTCUTS') this.state.save('geminiShortcuts', payload);
-        if (action === 'SAVE_MODEL') this.state.save('geminiModel', payload);
-        if (action === 'SAVE_THEME') this.state.save('geminiTheme', payload);
-        if (action === 'SAVE_LANGUAGE') this.state.save('geminiLanguage', payload);
-        if (action === 'SAVE_TEXT_SELECTION') this.state.save('geminiTextSelectionEnabled', payload);
-        if (action === 'SAVE_IMAGE_TOOLS') this.state.save('geminiImageToolsEnabled', payload);
-        if (action === 'SAVE_SIDEBAR_BEHAVIOR') this.state.save('geminiSidebarBehavior', payload);
-        if (action === 'SAVE_ACCOUNT_INDICES') this.state.save('geminiAccountIndices', payload);
-        if (action === 'SAVE_CONNECTION_SETTINGS') {
+// 6. Drafts (Autosave)
+    if (action === 'GET_DRAFTS') {
+      chrome.storage.local.get(['geminiDrafts'], (res) => {
+        this.frame.postMessage({
+          action: 'RESTORE_DRAFTS',
+          payload: res.geminiDrafts || {}
+        });
+      });
+      return;
+    }
+    if (action === 'SAVE_DRAFTS') {
+      this.state.save('geminiDrafts', payload);
+      return;
+    }
+
+    // 7. Data Setters (Sync to Storage & Cache)
+    if (action === 'SAVE_SESSIONS') this.state.save('geminiSessions', payload);
+    if (action === 'SAVE_SHORTCUTS') this.state.save('geminiShortcuts', payload);
+    if (action === 'SAVE_MODEL') this.state.save('geminiModel', payload);
+    if (action === 'SAVE_THEME') this.state.save('geminiTheme', payload);
+    if (action === 'SAVE_LANGUAGE') this.state.save('geminiLanguage', payload);
+    if (action === 'SAVE_TEXT_SELECTION') this.state.save('geminiTextSelectionEnabled', payload);
+    if (action === 'SAVE_IMAGE_TOOLS') this.state.save('geminiImageToolsEnabled', payload);
+    if (action === 'SAVE_SIDEBAR_BEHAVIOR') this.state.save('geminiSidebarBehavior', payload);
+    if (action === 'SAVE_ACCOUNT_INDICES') this.state.save('geminiAccountIndices', payload);
+    if (action === 'SAVE_CONNECTION_SETTINGS') {
             this.state.save('geminiProvider', payload.provider);
             // Official
             this.state.save('geminiUseOfficialApi', payload.provider === 'official'); // Maintain legacy bool for now
