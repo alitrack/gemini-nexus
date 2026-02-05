@@ -3,7 +3,7 @@
 import { appendAiMessage, appendUserMessage } from '../../managers/history_manager.js';
 import { PromptBuilder } from './prompt/builder.js';
 import { ToolExecutor } from './prompt/tool_executor.js';
-import { generateMessageId } from '../../lib/utils.js';
+import { generateMessageId } from '../../../lib/utils.js';
 
 // Helper to prevent rapid-fire requests that trigger rate limits
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));

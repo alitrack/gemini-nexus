@@ -8,7 +8,8 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background/index.js"
+    "service_worker": "background/index.js",
+    "type": "module"
   },
   "icons": {
     "16": "logo.png",

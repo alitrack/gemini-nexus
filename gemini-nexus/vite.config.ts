@@ -79,7 +79,16 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           sidepanel: path.resolve(__dirname, 'sidepanel/index.html'),
-          sandbox: path.resolve(__dirname, 'sandbox/index.html')
+          sandbox: path.resolve(__dirname, 'sandbox/index.html'),
+          background: path.resolve(__dirname, 'background/index.js')
+        },
+        output: {
+          entryFileNames: (chunkInfo) => {
+            if (chunkInfo.name === 'background') {
+              return 'background/index.js';
+            }
+            return 'assets/[name]-[hash].js';
+          }
         }
       }
     }
